@@ -1,0 +1,32 @@
+.tl-div {
+  width: 1055px;
+  height: 130px;
+  position: relative;
+
+  justify-content: center;
+}
+
+.listItem {
+  padding-right: 10px;
+  padding-left: 5px;
+  margin-bottom: 3px;
+  color: white;
+  background-color: initial;
+  transition: background-color 0.3s;
+}
+
+.listItem.selected {
+  background-color: #3399ff;
+  /* font-weight: bold; */
+}
+
+.listItem:hover {
+  background-color: teal;
+}
+
+.outline {
+  padding-top: 30px;
+  margin-right: 0px;
+  margin-left: 0px;
+  background-color: #101011;
+}
