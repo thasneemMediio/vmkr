@@ -5,11 +5,9 @@ import react from "@vitejs/plugin-react-swc";
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    include: [],
+    include: ["react-video-player-extended"],
   },
-  build: {
-    commonjsOptions: {
-      exclude: [""],
-    },
+  resolve: {
+    dedupe: ["react", "react-dom"],
   },
 });
