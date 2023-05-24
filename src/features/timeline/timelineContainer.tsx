@@ -1,15 +1,18 @@
 import {
   Timeline,
-  TimelineDragEvent,
-  TimelineElementDragState,
   TimelineModel,
   TimelineOptions,
   TimelineScrollEvent,
+  TimelineSelectedEvent,
   TimelineTimeChangedEvent,
 } from "animation-timeline-js";
 import { useEffect, useRef, useState } from "react";
 import "./VideoTimeline.css";
-import { ExtendedTimelineKeyframe, keyTypes } from "../player/playerContainer";
+import {
+  keyTypes,
+  ExtendedTimelineKeyframe,
+} from "../player/interfaces/interfaces";
+import { ExtendedTimelineDragEvent } from "./interfaces/interfaces";
 
 interface TimelineProps {
   time: number;
@@ -19,31 +22,30 @@ interface TimelineProps {
   item: string;
   onRowSelected: (item: keyTypes) => void;
   onTimeChange: (time: number) => void;
-  onTimelineDrag: (keyframe: ExtendedTimelineKeyframe) => void;
-}
-
-interface ExtendedTimelineDragEvent extends TimelineDragEvent {
-  target: ExtendedTimelineElementDragState | null;
-}
-
-interface ExtendedTimelineElementDragState extends TimelineElementDragState {
-  keyframe: ExtendedTimelineKeyframe;
+  onTimelineDrag: (keyframe: ExtendedTimelineKeyframe[]) => void;
+  onTimelineSelected: (keyframe: ExtendedTimelineKeyframe[]) => void;
 }
 
 const TimelineComponent = (props: TimelineProps): JSX.Element => {
   const timelineElRef = useRef<HTMLDivElement>(null);
   const [timeline, setTimeline] = useState<Timeline>();
 
-  const handleTimelineEvent = (event: ExtendedTimelineDragEvent) => {
-    props.onTimelineDrag(event.target!.keyframe);
-    console.log(`Dragging Id : ${event.target!.keyframe.id}`);
-  };
+  const handleTimelineEvent = (event: ExtendedTimelineDragEvent) =>
+    props.onTimelineDrag(event.target!.keyframes);
   const handleScrollEvent = (event: TimelineScrollEvent) => {
     console.log("Timeline Scroll event:", event.scrollHeight);
   };
 
   const handleTimeEvent = (event: TimelineTimeChangedEvent) =>
     props.onTimeChange(event.val);
+
+  const handleSelected = (event: TimelineSelectedEvent): void => {
+    const selected = event.selected;
+
+    console.log(`Selected : ${JSON.stringify(selected)}`);
+
+    props.onTimelineSelected(selected as ExtendedTimelineKeyframe[]);
+  };
 
   useEffect(() => {
     let newTimeline: Timeline | null = null;
@@ -61,12 +63,6 @@ const TimelineComponent = (props: TimelineProps): JSX.Element => {
         }
       });
 
-      // newTimeline.onDrag((args: ExtendedTimelineDragEvent) => {
-      //   if (args) {
-      //     handleTimelineEvent(args);
-      //   }
-      // });
-
       newTimeline.onDrag(
         (data) => {
           return handleTimelineEvent(data as ExtendedTimelineDragEvent);
@@ -78,6 +74,12 @@ const TimelineComponent = (props: TimelineProps): JSX.Element => {
         console.log("scrolling");
         if (args) {
           handleScrollEvent(args);
+        }
+      });
+
+      newTimeline.onSelected((args: TimelineSelectedEvent) => {
+        if (args) {
+          handleSelected(args);
         }
       });
 
@@ -101,14 +103,6 @@ const TimelineComponent = (props: TimelineProps): JSX.Element => {
     }
   }, [props.time, timeline]);
 
-  // const listItems = rows.map((row ,index) => <div style={{ marginBottom: '5px',color: 'white' }} key={index} > {row}</div>);
-  //  const listItems = rows.map((row, index) => (
-  //   <div key={index}>
-  //     <div style={{ marginBottom: '2px', color: 'white' }}>{row}</div>
-  //     {index !== rows.length - 1 && <hr style={{ margin: '0', border: 'none', borderTop: '1px solid white' }} />}
-  //   </div>
-  // ));
-
   const listItems = props.rows.map((row, index) => {
     return (
       <div
@@ -120,6 +114,27 @@ const TimelineComponent = (props: TimelineProps): JSX.Element => {
       </div>
     );
   });
+
+  // Key handlers
+
+  const handleCtrl = (ev: KeyboardEvent): void => {
+    if (ev.key == "Control") {
+      const index = props.rows.findIndex((type) => type === props.item);
+      const nextIndex = (index + 1) % props.rows.length;
+
+      props.onRowSelected(props.rows[nextIndex]);
+    }
+  };
+
+  // Key Events
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleCtrl);
+
+    return () => {
+      document.removeEventListener("keydown", handleCtrl);
+    };
+  }, [handleCtrl]);
 
   return (
     <div style={{ display: "flex" }}>

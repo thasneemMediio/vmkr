@@ -4,46 +4,16 @@ import { ProgressProps } from "react-video-player-extended";
 import { Root, Track } from "../analyzer/analytical.entity";
 import { Marker } from "react-video-player-extended/dist/marker";
 import { TimelineComponent } from "../timeline/timelineContainer";
-import {
-  TimelineKeyframe,
-  TimelineOptions,
-  TimelineRow,
-  TimelineRowStyle,
-} from "animation-timeline-js";
+import { TimelineOptions, TimelineRowStyle } from "animation-timeline-js";
 import { createKeyframePairs } from "../timeline/timelineutils";
-
+import {
+  ExtendedMarker,
+  ExtendedTimelineRow,
+  ExtendedTimelineKeyframe,
+  keyTypes,
+} from "./interfaces/interfaces";
 
 // no touchy touchy , will breaky breaky  -_-
-
-interface PlayerProps {
-  url: string;
-  isPlaying: boolean;
-  volume: number;
-  fps: number;
-  markers: Marker[];
-
-  onPlay: () => void;
-  onPause: () => void;
-  onVolume: (volume: number) => void;
-  onProgress: (e: Event, progress: ProgressProps) => void | null;
-  onMetaReady: (event: React.SyntheticEvent<HTMLVideoElement, Event>) => void;
-  onMarkerAdded: (marker: Marker) => void;
-}
-
-export interface ExtendedTimelineKeyframe extends TimelineKeyframe {
-  id: string;
-}
-
-export type keyTypes = "start" | "main" | "end";
-
-export interface ExtendedTimelineRow extends TimelineRow {
-  type: keyTypes;
-  keyframes: ExtendedTimelineKeyframe[] | null;
-}
-
-export interface ExtendedMarker extends Marker {
-  type: keyTypes;
-}
 
 const PlayerContainer = (): JSX.Element => {
   const [url, _setUrl] = useState<string>(
@@ -57,7 +27,7 @@ const PlayerContainer = (): JSX.Element => {
   const [frames, setFrames] = useState<number | null>(null);
   const [meta, setMeta] = useState<Track | null>(null);
   const [markers, setMarkers] = useState<ExtendedMarker[]>();
-  const [id, _setId] = useState<number>(0);
+  const [ids, setIds] = useState<number[]>([]);
   const [duration, setDuration] = useState<number>(0);
 
   // Position of Time Dragger | ms
@@ -132,20 +102,21 @@ const PlayerContainer = (): JSX.Element => {
 
     if (markers) {
       const keyframes = createKeyframePairs(markers);
-      //console.log(`keyFranes changed ${JSON.stringify(keyframes)}`);
-
-      // setRows((prev) => [...prev, ...(keyframes || [])]);
 
       setRows(keyframes || []);
-
-      console.log(`Rows : ${JSON.stringify(rows)}`);
-    } else {
-      console.log("failed");
     }
   }, [markers]);
 
   const removeMarkers = () => {
-    setMarkers((prev) => prev?.filter((marker) => marker.id !== id));
+    ids.forEach((id) => {
+      setMarkers((prev) => prev?.filter((marker) => marker.id !== id));
+    });
+  };
+
+  const handleSelection = (frames: ExtendedTimelineKeyframe[]): void => {
+    const idsAr: number[] = frames.map((obj) => parseInt(obj.id));
+
+    setIds(idsAr);
   };
 
   const options = {
@@ -155,8 +126,6 @@ const PlayerContainer = (): JSX.Element => {
     } as TimelineRowStyle,
     snapEnabled: false,
   } as TimelineOptions;
-
-  useEffect(() => {}, [meta]);
 
   // pulling metadata n sets when video is loaded
   useEffect(() => {
@@ -173,21 +142,17 @@ const PlayerContainer = (): JSX.Element => {
 
   const [item, setItem] = useState<keyTypes>("start");
 
-  const handleTimelineDrag = (keyframe: ExtendedTimelineKeyframe) => {
-    const { id, val } = keyframe;
+  const handleTimelineDrag = (keyframes: ExtendedTimelineKeyframe[]) => {
+    keyframes.forEach((key) => {
+      const { id, val } = key;
 
-    setMarkers((prevState) =>
-      prevState?.map((marker) =>
-        marker.id.toString() === id ? { ...marker, time: val / 1000 } : marker
-      )
-    );
-
-    console.log(`Rows : ${JSON.stringify(rows)}`);
-    console.log(`Rows : ${JSON.stringify(markers)}`);
-
-    // console.log(id);
-
-    setPosition(val);
+      setMarkers((prevState) =>
+        prevState?.map((marker) =>
+          marker.id.toString() === id ? { ...marker, time: val / 1000 } : marker
+        )
+      );
+      setPosition(val);
+    });
   };
 
   return (
@@ -229,10 +194,10 @@ const PlayerContainer = (): JSX.Element => {
         item={item}
         onRowSelected={handleItemSelection}
         onTimelineDrag={handleTimelineDrag}
+        onTimelineSelected={handleSelection}
       />
     </>
   );
 };
 
 export { PlayerContainer };
-export type { PlayerProps };

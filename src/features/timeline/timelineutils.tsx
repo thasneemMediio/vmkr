@@ -1,4 +1,7 @@
-import { ExtendedMarker, ExtendedTimelineRow } from "../player/playerContainer";
+import {
+  ExtendedMarker,
+  ExtendedTimelineRow,
+} from "../player/interfaces/interfaces";
 
 const createKeyframePairs = (
   markers: ExtendedMarker[]
@@ -29,11 +32,7 @@ const createKeyframePairs = (
     const startKeyframe = markers[i].time;
     const endKeyframe = markers[i + 1].time;
 
-    const group = "default";
-
     const index = pairs.findIndex((pair) => pair.type === markers[i].type);
-
-    console.log(`index : ${index}`);
 
     if (index !== -1) {
       pairs[index].keyframes!.push(
@@ -57,77 +56,4 @@ const createKeyframePairs = (
   return pairs;
 };
 
-const getKeyframesByPair = (
-  pairNumber: number,
-  startKeyframe: number,
-  endKeyframe: number
-): [number, number] => {
-  if (pairNumber < 1) {
-    throw new Error("Invalid pair number.");
-  }
-
-  const keyframes: [number, number][] = [];
-  let currentStart = startKeyframe;
-  let currentEnd = endKeyframe;
-
-  for (let i = 1; i <= pairNumber; i++) {
-    keyframes.push([currentStart, currentEnd]);
-    const nextEnd = currentEnd - currentStart + currentEnd;
-    currentStart = currentEnd;
-    currentEnd = nextEnd;
-  }
-
-  return keyframes[pairNumber - 1];
-};
-
 export { createKeyframePairs };
-
-////
-
-// pairs.push(
-//     {
-//       type: "start",
-//       keyframes: [
-//         {
-//           group: markers[i].title,
-//           val: getKeyframesByPair(1, startKeyframe, endKeyframe)[0] * 1000,
-//           id: markers[i].id.toString(),
-//         },
-//         {
-//           group: markers[i].title,
-//           val: getKeyframesByPair(1, startKeyframe, endKeyframe)[1] * 1000,
-//           id: markers[i].id.toString(),
-//         },
-//       ],
-//     },
-//     {
-//       type: "main",
-//       keyframes: [
-//         {
-//           group: markers[i].title,
-//           val: getKeyframesByPair(2, startKeyframe, endKeyframe)[0] * 1000,
-//           id: markers[i].id.toString(),
-//         },
-//         {
-//           group: markers[i].title,
-//           val: getKeyframesByPair(2, startKeyframe, endKeyframe)[1] * 1000,
-//           id: markers[i].id.toString(),
-//         },
-//       ],
-//     },
-//     {
-//       type: "end",
-//       keyframes: [
-//         {
-//           group: markers[i].title,
-//           val: getKeyframesByPair(3, startKeyframe, endKeyframe)[0] * 1000,
-//           id: markers[i].id.toString(),
-//         },
-//         {
-//           group: markers[i].title,
-//           val: getKeyframesByPair(3, startKeyframe, endKeyframe)[1] * 1000,
-//           id: markers[i].id.toString(),
-//         },
-//       ],
-//     }
-//   );
