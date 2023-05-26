@@ -155,6 +155,22 @@ const PlayerContainer = (): JSX.Element => {
     });
   };
 
+  // Key handlers
+
+  const handleMarkRemoval = (ev: KeyboardEvent): void => {
+    if (ev.code == "Delete") removeMarkers();
+  };
+
+  // Key Events
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleMarkRemoval);
+
+    return () => {
+      document.removeEventListener("keydown", handleMarkRemoval);
+    };
+  }, [handleMarkRemoval]);
+
   return (
     <>
       <PlayerView

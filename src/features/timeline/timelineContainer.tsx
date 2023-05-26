@@ -55,6 +55,7 @@ const TimelineComponent = (props: TimelineProps): JSX.Element => {
         id: timelineElRef.current,
         headerHeight: 30,
         rowsStyle: { height: 25 },
+        scrollContainerClass: "scrollar",
       });
 
       newTimeline.onTimeChanged((args: TimelineTimeChangedEvent) => {
@@ -137,9 +138,9 @@ const TimelineComponent = (props: TimelineProps): JSX.Element => {
   }, [handleCtrl]);
 
   return (
-    <div style={{ display: "flex" }}>
+    <div  className="container" >
       <div className="outline">{listItems}</div>
-      <div className="tl-div" ref={timelineElRef} />;
+      <div className="tl-div" ref={timelineElRef} />
     </div>
   );
 };
