@@ -12,6 +12,7 @@ import {
   ExtendedTimelineKeyframe,
   keyTypes,
 } from "./interfaces/interfaces";
+import { downloadAttachment } from "./utils.tsx/downloader";
 
 // no touchy touchy , will breaky breaky  -_-
 
@@ -155,6 +156,9 @@ const PlayerContainer = (): JSX.Element => {
     });
   };
 
+  const handleExports = (): void =>
+    downloadAttachment(JSON.stringify(markers, null, 2), "export.json");
+
   // Key handlers
 
   const handleMarkRemoval = (ev: KeyboardEvent): void => {
@@ -199,6 +203,7 @@ const PlayerContainer = (): JSX.Element => {
       <button onClick={() => handleMeta()}>{"get meta"}</button>
 
       <button onClick={() => removeMarkers()}>{"remove"}</button>
+      <button onClick={() => handleExports()}>{"save"}</button>
       <input type="checkbox" onChange={handleSync} />
 
       <TimelineComponent
