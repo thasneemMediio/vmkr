@@ -35,7 +35,7 @@ const PlayerView = (props: PlayerProps): JSX.Element => {
       markers={props.markers}
       fps={props.fps}
       url={props.url}
-      timeStart={0}
+      timeStart={props.timeStart}
       isPlaying={props.isPlaying}
       volume={props.volume}
       onPlay={props.onPlay}

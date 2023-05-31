@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { PlayerView } from "./playerView";
 import { ProgressProps } from "react-video-player-extended";
 import { Root, Track } from "../analyzer/analytical.entity";
@@ -18,7 +18,7 @@ import { downloadAttachment } from "./utils.tsx/downloader";
 
 const PlayerContainer = (): JSX.Element => {
   const [url, _setUrl] = useState<string>(
-    "https://media.w3.org/2010/05/bunny/trailer.mp4"
+    "https://media.w3.org/2010/05/bunny/trailer.ogv"
   );
   const [play, setPlay] = useState<boolean>(false);
   const [volume, setVolume] = useState<number>(0.7);
@@ -30,6 +30,8 @@ const PlayerContainer = (): JSX.Element => {
   const [markers, setMarkers] = useState<ExtendedMarker[]>();
   const [ids, setIds] = useState<number[]>([]);
   const [duration, setDuration] = useState<number>(0);
+  const [selectedClip, setSelectedClip] = useState();
+  const [clips, setClips] = useState([]);
 
   // Position of Time Dragger | ms
   const [position, setPosition] = useState<number>(0); // in ms
@@ -62,8 +64,18 @@ const PlayerContainer = (): JSX.Element => {
     video && (video.currentTime = position / 1000);
   }, [position]);
 
+  const selectedClipRef = useRef(null);
+  selectedClipRef.current = selectedClip;
+
   const handleOnProgress = (_e: Event, _progress: ProgressProps): void => {
-    setCT(_progress.currentTime * 1000);
+    // setCT(_progress.currentTime * 1000);
+
+    if (
+      selectedClipRef.current &&
+      !!(_progress?.currentTime >= selectedClipRef.current?.to?.time)
+    ) {
+      setPlay(false);
+    }
   };
 
   const handleSync = () => setSync(!sync);
@@ -156,8 +168,35 @@ const PlayerContainer = (): JSX.Element => {
     });
   };
 
-  const handleExports = (): void =>
-    downloadAttachment(JSON.stringify(markers, null, 2), "export.json");
+  const handleExports = (): void => {
+    // setSelectedClip({...markers})
+    // downloadAttachment(JSON.stringify(markers, null, 2), "export.json");
+    console.log(JSON.stringify(markers, null, 2));
+
+    const result = [];
+
+    for (let i = 0; i < markers.length - 1; i += 2) {
+      const fromObj = markers[i];
+      const toObj = markers[i + 1];
+
+      result.push({ from: fromObj, to: toObj });
+    }
+    setClips(result);
+    console.log(JSON.stringify(result, null, 2));
+  };
+
+  const onPlayClip = (clip) => {
+    console.log("cilp", clip.from.time);
+    setSelectedClip({
+      ...clip,
+      from: {
+        ...clip?.from,
+        time: clip?.from?.time + Math.random() / 1000000,
+      },
+    });
+    setPlay(true);
+    // setMarkers([clip?.from, clip?.to]);
+  };
 
   // Key handlers
 
@@ -177,7 +216,7 @@ const PlayerContainer = (): JSX.Element => {
 
   return (
     <>
-      <PlayerView
+      {/* <PlayerView
         url={url}
         isPlaying={play}
         volume={volume}
@@ -189,7 +228,55 @@ const PlayerContainer = (): JSX.Element => {
         onMetaReady={handleVideo}
         onProgress={handleOnProgress}
         onMarkerAdded={handleMarkers}
-      />
+        timeStart={selectedClip?.from?.time}
+      /> */}
+
+      <div style={{ display: "flex", flexDirection: "row" }}>
+        <PlayerView
+          url={url}
+          isPlaying={play}
+          volume={volume}
+          markers={markers ?? []}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onVolume={handleVolume}
+          fps={fps}
+          onMetaReady={handleVideo}
+          onProgress={handleOnProgress}
+          onMarkerAdded={handleMarkers}
+          timeStart={selectedClip?.from?.time}
+        />
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: "50px",
+          }}
+        >
+          {clips.map((clip, index) => (
+            <div key={clip?.from?.id} style={{ marginBottom: "8px" }}>
+              <label>{`clipe ${index + 1}`}</label>
+              <button onClick={() => onPlayClip(clip)}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M5 3l14 9-14 9V3z" />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
 
       <input
         type="text"
@@ -217,6 +304,30 @@ const PlayerContainer = (): JSX.Element => {
         onTimelineDrag={handleTimelineDrag}
         onTimelineSelected={handleSelection}
       />
+
+      {/* {clips.map((clip, index) => {
+        return (
+          <div key={clip?.from?.id}>
+            <label style={{ marginRight: "8px" }}>{`clipe ${index + 1}`}</label>
+            <button onClick={() => onPlayClip(clip)}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 3l14 9-14 9V3z" />
+              </svg>
+            </button>
+          </div>
+        );
+      })} */}
+      <div>{JSON.stringify(clips, null, 2)}</div>
     </>
   );
 };

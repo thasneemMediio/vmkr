@@ -8,7 +8,7 @@ interface PlayerProps {
   volume: number;
   fps: number;
   markers: Marker[];
-  
+  timeStart: number;
 
   onPlay: () => void;
   onPause: () => void;
